@@ -1,6 +1,6 @@
 import pytest
 
-from pytest_test_groups import get_group, get_group_size
+from pytest_split_tests import get_group, get_group_size
 
 
 def test_group_size_computed_correctly_for_even_group():

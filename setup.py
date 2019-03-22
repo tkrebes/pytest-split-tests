@@ -10,14 +10,15 @@ def read(fname):
 
 
 setup(
-    name="pytest-test-groups",
+    name="pytest-split-tests",
     description=('A Pytest plugin for running a subset of your tests by '
-                 'splitting them in to equally sized groups.'),
-    url='https://github.com/mark-adams/pytest-test-groups',
-    author='Mark Adams',
-    author_email='mark@markadams.me',
-    packages=['pytest_test_groups'],
-    version='1.0.3',
+                 'splitting them in to equally sized groups. Forked from '
+                 'Mark Adams\' original project pytest-test-groups.'),
+    url='https://github.com/wchill/pytest-split-tests',
+    author='Eric Ahn',
+    author_email='wchill@chilly.codes',
+    packages=['pytest_split_tests'],
+    version='1.0.4',
     long_description=read('README.rst'),
     install_requires=['pytest>=2.5'],
     classifiers=['Development Status :: 5 - Production/Stable',
@@ -27,13 +28,13 @@ setup(
                  'Programming Language :: Python',
                  'Topic :: Software Development :: Testing',
                  'Programming Language :: Python :: 2.7',
-                 'Programming Language :: Python :: 3.3',
-                 'Programming Language :: Python :: 3.4',
-                 'Programming Language :: Python :: 3.5'
+                 'Programming Language :: Python :: 3.5',
+                 'Programming Language :: Python :: 3.6',
+                 'Programming Language :: Python :: 3.7'
                  ],
     entry_points={
         'pytest11': [
-            'test-groups = pytest_test_groups',
+            'split-tests = pytest_split_tests',
         ]
     },
 )
