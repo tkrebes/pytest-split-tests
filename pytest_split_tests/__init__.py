@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-
-# Import python libs
 import math
 from random import Random
 
-# Import 3rd-party libs
+import pytest
 from _pytest.config import create_terminal_writer
 
 
@@ -34,7 +32,9 @@ def pytest_addoption(parser):
                     help='Integer to seed pseudo-random test selection')
 
 
+@pytest.hookimpl(hookwrapper=True)
 def pytest_collection_modifyitems(session, config, items):
+    yield
     group_count = config.getoption('test-group-count')
     group_id = config.getoption('test-group')
     seed = config.getoption('random-seed', False)
@@ -59,12 +59,13 @@ def pytest_collection_modifyitems(session, config, items):
         items.sort(key=original_order.__getitem__)
 
     terminal_reporter = config.pluginmanager.get_plugin('terminalreporter')
-    terminal_writer = create_terminal_writer(config)
-    message = terminal_writer.markup(
-        'Running test group #{0} ({1} tests)\n'.format(
-            group_id,
-            len(items)
-        ),
-        yellow=True
-    )
-    terminal_reporter.write(message)
+    if terminal_reporter is not None:
+        terminal_writer = create_terminal_writer(config)
+        message = terminal_writer.markup(
+            'Running test group #{0} ({1} tests)\n'.format(
+                group_id,
+                len(items)
+            ),
+            yellow=True
+        )
+        terminal_reporter.write(message)
