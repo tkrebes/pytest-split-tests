@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import math
 from random import Random
+import json
+import math
 
-import pytest
 from _pytest.config import create_terminal_writer
+import pytest
 
 
 def get_group_size(total_items, total_groups):
@@ -30,6 +31,8 @@ def pytest_addoption(parser):
                     help='The group of tests that should be executed')
     group.addoption('--test-group-random-seed', dest='random-seed', type=int,
                     help='Integer to seed pseudo-random test selection')
+    group.addoption('--test-group-prescheduled', dest='prescheduled', type=str,
+                    help='Path to JSON file containing which tests to run.')
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -38,25 +41,41 @@ def pytest_collection_modifyitems(session, config, items):
     group_count = config.getoption('test-group-count')
     group_id = config.getoption('test-group')
     seed = config.getoption('random-seed', False)
+    prescheduled_path = config.getoption('prescheduled', None)
 
     if not group_count or not group_id:
         return
 
+    test_dict = {item.name: item for item in items}
     original_order = {item: index for index, item in enumerate(items)}
+
+    # schema: prescheduled_data[node_id] = [*test_names]
+    prescheduled_data = [[] for _ in range(group_count)]
+    if prescheduled_path:
+        try:
+            with open(prescheduled_path, 'r') as f:
+                prescheduled_data = json.load(f)
+                if len(prescheduled_data) != group_count:
+                    print('WARNING: Prescheduled tests do not match up with the group count. '
+                          'Prescheduling will be skipped.')
+        except Exception:
+            print('WARNING: Unable to load prescheduled tests. Prescheduling will be skipped.')
+
+    all_prescheduled_tests = [test_dict[test] for sublist in prescheduled_data for test in sublist]
+    prescheduled_tests = [test_dict[test] for test in prescheduled_data[group_id - 1]]
+    items = [item for item in items if item not in all_prescheduled_tests]
 
     if seed is not False:
         seeded = Random(seed)
         seeded.shuffle(items)
 
-    total_items = len(items)
+    total_unscheduled_items = len(items)
 
-    group_size = get_group_size(total_items, group_count)
+    group_size = get_group_size(total_unscheduled_items, group_count)
     tests_in_group = get_group(items, group_size, group_id)
-    items[:] = tests_in_group
+    items[:] = tests_in_group + prescheduled_tests
 
-    if seed is not False:
-        # Revert the shuffled sample of tests back to their original order.
-        items.sort(key=original_order.__getitem__)
+    items.sort(key=original_order.__getitem__)
 
     terminal_reporter = config.pluginmanager.get_plugin('terminalreporter')
     if terminal_reporter is not None:
@@ -66,6 +85,11 @@ def pytest_collection_modifyitems(session, config, items):
                 group_id,
                 len(items)
             ),
+            yellow=True
+        )
+        terminal_reporter.write(message)
+        message = terminal_writer.markup(
+            '\n'.join([item.name for item in items]),
             yellow=True
         )
         terminal_reporter.write(message)
