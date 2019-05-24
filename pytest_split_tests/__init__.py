@@ -63,7 +63,7 @@ def pytest_collection_modifyitems(session, config, items):
 
     all_prescheduled_tests = [test_dict[test] for sublist in prescheduled_data for test in sublist]
     prescheduled_tests = [test_dict[test] for test in prescheduled_data[group_id - 1]]
-    items = [item for item in items if item not in all_prescheduled_tests]
+    items[:] = [item for item in items if item not in all_prescheduled_tests]
 
     if seed is not False:
         seeded = Random(seed)
