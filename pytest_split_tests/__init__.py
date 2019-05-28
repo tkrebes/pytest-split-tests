@@ -61,18 +61,23 @@ def pytest_collection_modifyitems(session, config, items):
         except Exception:
             print('WARNING: Unable to load prescheduled tests. Prescheduling will be skipped.')
 
-    all_prescheduled_tests = [test_dict[test] for sublist in prescheduled_data for test in sublist]
-    prescheduled_tests = [test_dict[test] for test in prescheduled_data[group_id - 1]]
-    items[:] = [item for item in items if item not in all_prescheduled_tests]
+    all_prescheduled_tests = [test_dict[test_name]
+                              for sublist in prescheduled_data
+                              for test_name in sublist
+                              if test_name in test_dict]
+    prescheduled_tests = [test_dict[test_name]
+                          for test_name in prescheduled_data[group_id - 1]
+                          if test_name in test_dict]
+    unscheduled_tests = [item for item in items if item not in all_prescheduled_tests]
 
     if seed is not False:
         seeded = Random(seed)
-        seeded.shuffle(items)
+        seeded.shuffle(unscheduled_tests)
 
-    total_unscheduled_items = len(items)
+    total_unscheduled_items = len(unscheduled_tests)
 
     group_size = get_group_size(total_unscheduled_items, group_count)
-    tests_in_group = get_group(items, group_size, group_id)
+    tests_in_group = get_group(unscheduled_tests, group_size, group_id)
     items[:] = tests_in_group + prescheduled_tests
 
     items.sort(key=original_order.__getitem__)
