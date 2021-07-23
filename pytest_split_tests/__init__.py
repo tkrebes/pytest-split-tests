@@ -29,9 +29,9 @@ def pytest_addoption(parser):
                     help='The number of groups to split the tests into')
     group.addoption('--test-group', dest='test-group', type=int,
                     help='The group of tests that should be executed')
-    group.addoption('--test-group-random-seed', dest='random-seed', type=int,
+    group.addoption('--test-group-random-seed', dest='random-seed', type=int, default=False,
                     help='Integer to seed pseudo-random test selection')
-    group.addoption('--test-group-prescheduled', dest='prescheduled', type=str,
+    group.addoption('--test-group-prescheduled', dest='prescheduled', type=str, default=None,
                     help='Path to JSON file containing which tests to run.')
 
 
@@ -40,8 +40,8 @@ def pytest_collection_modifyitems(session, config, items):
     yield
     group_count = config.getoption('test-group-count')
     group_id = config.getoption('test-group')
-    seed = config.getoption('random-seed', False)
-    prescheduled_path = config.getoption('prescheduled', None)
+    seed = config.getoption('random-seed')
+    prescheduled_path = config.getoption('prescheduled')
 
     if not group_count or not group_id:
         return
