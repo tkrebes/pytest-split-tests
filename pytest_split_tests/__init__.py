@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from random import Random
 import json
 import math
+from random import Random
 
 from _pytest.config import create_terminal_writer
+
 import pytest
 
 
